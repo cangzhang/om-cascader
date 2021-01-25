@@ -1,0 +1,24 @@
+.omc-trigger {
+}
+
+ul.omc-menu {
+  width: max-content;
+  margin: unset;
+  padding: unset;
+  list-style: none;
+
+  li.omc-menu-item {
+    width: max-content;
+
+    &.has-children {
+      position: relative;
+
+      ul.omc-menu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+      }
+    }
+  }
+}
+
