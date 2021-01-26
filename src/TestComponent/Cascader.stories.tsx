@@ -7,7 +7,7 @@ export default {
 
 const menu = [
   {
-    label: `Item 1`,
+    label: `Turbo Transformers`,
     value: `item1`,
     onClick: (_, i) => console.log(i),
   },
@@ -17,7 +17,7 @@ const menu = [
     onClick: (_, i) => console.log(i),
     children: [
       {
-        label: `Child Item 1`,
+        label: `Turbo Transformers: Child Item 1 Turbo Transformers: Child Item 1`,
         value: `child item1`,
         onClick: (_, i) => console.log(i),
         children: [
@@ -41,6 +41,17 @@ const menu = [
         ],
       },
     ],
+  },
+  {
+    label: `Turbo Transformers 2`,
+    value: `item1`,
+    onClick: (_, i) => console.log(i),
+    showDividerAfter: true,
+  },
+  {
+    label: `Turbo Transformers 3`,
+    value: `item1`,
+    onClick: (_, i) => console.log(i),
   },
 ];
 
@@ -81,8 +92,8 @@ export const Primary = () => {
         </Cascader>
       </div>
 
-      <div style={{alignSelf: `flex-end`, marginTop: `100px`}}>
-        <Cascader menu={menu}>
+      <div style={{alignSelf: `flex-end`, margin: `100px 200px`}}>
+        <Cascader menu={menu} menuExpandIcon={`>`}>
           sm
         </Cascader>
       </div>

@@ -1,6 +1,6 @@
 import './Cascader.scss';
 
-import React, {FormEvent, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {FormEvent, ReactNode, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import cn from 'classnames';
 
@@ -13,6 +13,7 @@ interface MenuItemProps {
   onClick?: (ev: FormEvent, v: any) => any;
   children?: MenuItemProps[];
   childrenListClassName?: string;
+  showDividerAfter?: boolean;
 }
 
 interface MenuProps {
@@ -26,19 +27,21 @@ interface MenuProps {
   };
   menu: MenuItemProps[];
   menuTrigger?: Trigger;
+  menuExpandIcon?: ReactNode;
 }
 
-interface Props {
+interface Props extends Pick<MenuProps, `menu` | `menuTrigger` | `menuExpandIcon`> {
   container?: HTMLElement;
   className?: string;
   menuClassName?: string;
-  menu: MenuItemProps[];
-  menuTrigger?: Trigger;
 }
 
-const Menu = ({container, show, className, offset, menu, menuTrigger}: MenuProps) => {
+const MIN_MARGIN = 30;
+
+const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpandIcon}: MenuProps) => {
   const [opened, setOpened] = useState(``);
   const [expandR, setExpandR] = useState(false);
+  const [firstLevelMenuToRight, setFirstLevelMenu] = useState(false);
 
   useEffect(() => {
     if (!show) {
@@ -51,8 +54,11 @@ const Menu = ({container, show, className, offset, menu, menuTrigger}: MenuProps
       return;
     }
 
-    const wholeWidth = Array.from(container.querySelectorAll(`ul.omc-menu`)).reduce((cur, i: HTMLElement) => cur + i.offsetWidth, 0);
-    const shouldExpandToR = wholeWidth + offset.left + 30 >= window.innerWidth;
+    const allMenus: HTMLElement[] = Array.from(container.querySelectorAll(`ul.omc-menu`));
+    const placeFirstLevelToRight = allMenus[0].offsetWidth + offset.left + MIN_MARGIN >= window.innerWidth;
+    setFirstLevelMenu(placeFirstLevelToRight);
+    const totalWidth = allMenus.reduce((cur, i) => cur + i.offsetWidth, 0);
+    const shouldExpandToR = totalWidth + offset.left + MIN_MARGIN >= window.innerWidth;
     setExpandR(shouldExpandToR);
   }, [show, opened]);
 
@@ -86,7 +92,12 @@ const Menu = ({container, show, className, offset, menu, menuTrigger}: MenuProps
       return (
         <li
           key={key}
-          className={cn(i.className, hasChildren && `has-children`, `omc-menu-item`)}
+          className={cn(
+            i.className,
+            `omc-menu-item`,
+            hasChildren && `has-children`,
+            i.showDividerAfter && `has-divider`,
+          )}
         >
           <span
             onMouseEnter={onHoverToggle(key)}
@@ -94,6 +105,7 @@ const Menu = ({container, show, className, offset, menu, menuTrigger}: MenuProps
             onClick={onClickItem(key, i)}
           >
             {i.label}
+            {hasChildren && menuExpandIcon && <div className='expand-icon'>{menuExpandIcon}</div>}
           </span>
           {showChildren && hasChildren && (
             <ul className={cn(i.childrenListClassName, `omc-menu`, expandR && `expand-r`)}>
@@ -109,13 +121,19 @@ const Menu = ({container, show, className, offset, menu, menuTrigger}: MenuProps
     return null;
   }
 
+  const style: React.CSSProperties = {
+    top: offset?.top,
+  };
+  if (firstLevelMenuToRight) {
+    style.right = 0;
+  } else {
+    style.left = offset.left;
+  }
+
   return ReactDOM.createPortal(
     <ul
       className={cn(className, `omc-menu`)}
-      style={{
-        left: offset?.left,
-        top: offset?.top,
-      }}
+      style={style}
     >
       {renderItems(menu, ``)}
     </ul>,
@@ -130,6 +148,7 @@ const Cascader: React.FC<Props> = ({
                                      menuClassName = ``,
                                      menu,
                                      menuTrigger = `hover`,
+                                     menuExpandIcon,
                                    }) => {
   const el = useRef(null);
   const menuRef = useRef(null);
@@ -208,6 +227,7 @@ const Cascader: React.FC<Props> = ({
       offset={offset}
       menu={menu}
       menuTrigger={menuTrigger}
+      menuExpandIcon={menuExpandIcon}
     />
   </>;
 };
