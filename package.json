@@ -1,5 +1,5 @@
 {
-  "name": "react-component-library",
+  "name": "om-cascader",
   "version": "1.0.0",
   "main": "build/index.js",
   "module": "build/index.esm.js",
@@ -7,7 +7,7 @@
     "build"
   ],
   "types": "build/index.d.ts",
-  "description": "A skeleton to create your own React component library using Rollup, TypeScript, Sass and Storybook",
+  "description": "A simple cascader component",
   "scripts": {
     "build": "rollup -c",
     "test": "jest",
@@ -17,10 +17,7 @@
     "generate": "node ./util/create-component",
     "prepublishOnly": "npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/HarveyD/react-component-library.git"
-  },
+  "repository": "https://github.com/cangzhang/om-cascader.git",
   "keywords": [
     "React",
     "Component",
@@ -30,12 +27,12 @@
     "Sass",
     "Storybook"
   ],
-  "author": "Harvey Delaney",
+  "author": "Al Cheung",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/HarveyD/react-component-library/issues"
+    "url": "https://github.com/cangzhang/om-cascader/issues"
   },
-  "homepage": "https://github.com/HarveyD/react-component-library#readme",
+  "homepage": "https://github.com/cangzhang/om-cascader#readme",
   "peerDependencies": {
     "classnames": "^2.2.6",
     "react": ">=16.14.0",
