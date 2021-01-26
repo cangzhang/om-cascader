@@ -1,3 +1,3 @@
-import TestComponent from "./TestComponent";
+import Cascader from './Cascader';
 
-export { TestComponent };
+export {Cascader};
