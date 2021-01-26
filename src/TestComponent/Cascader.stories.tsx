@@ -26,12 +26,19 @@ const menu = [
             value: `grandchild item1`,
             onClick: (_, i) => console.log(i),
           },
-        ]
+        ],
       },
       {
         label: `Child Item 2`,
         value: `child item2`,
         onClick: (_, i) => console.log(i),
+        children: [
+          {
+            label: `Grandchild Item 2`,
+            value: `grandchild item2`,
+            onClick: (_, i) => console.log(i),
+          },
+        ],
       },
     ],
   },
@@ -42,8 +49,19 @@ export const Primary = () => {
     console.log(new Date().toLocaleString());
   };
 
-  return <div style={{display: `flex`, justifyContent: `center`}}>
+  return <div style={{
+    display: `flex`,
+    flexDirection: `column`,
+    justifyContent: `center`,
+    alignItems: `center`,
+  }}>
     <Cascader menu={menu}>
+      click me
+    </Cascader>
+
+    <br/>
+
+    <Cascader menu={menu} menuTrigger={`click`}>
       <button onClick={log}>click me</button>
     </Cascader>
   </div>;
