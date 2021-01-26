@@ -6,6 +6,7 @@ ul.omc-menu {
   margin: unset;
   padding: unset;
   list-style: none;
+  position: absolute;
 
   li.omc-menu-item {
     width: max-content;
@@ -17,6 +18,11 @@ ul.omc-menu {
         position: absolute;
         top: 0;
         left: 100%;
+
+        &.expand-r {
+          right: 100%;
+          left: unset;
+        }
       }
     }
   }

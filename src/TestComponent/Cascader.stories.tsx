@@ -45,24 +45,48 @@ const menu = [
 ];
 
 export const Primary = () => {
-  const log = () => {
-    console.log(new Date().toLocaleString());
-  };
+    const log = () => {
+      console.log(new Date().toLocaleString());
+    };
 
-  return <div style={{
-    display: `flex`,
-    flexDirection: `column`,
-    justifyContent: `center`,
-    alignItems: `center`,
-  }}>
-    <Cascader menu={menu}>
-      click me
-    </Cascader>
+    return <div
+      style={{
+        display: `flex`,
+        flexDirection: `column`,
+        justifyContent: `center`,
+        alignItems: `center`,
+      }}
+    >
+      <Cascader menu={menu}>
+        click me(expand menu on hover)
+      </Cascader>
 
-    <br/>
+      <br/>
 
-    <Cascader menu={menu} menuTrigger={`click`}>
-      <button onClick={log}>click me</button>
-    </Cascader>
-  </div>;
-};
+      <div
+        style={{
+          margin: `100px 0`,
+        }}
+      >
+        <Cascader menu={menu} menuTrigger={`click`}>
+          <button onClick={log}>click me(expand menu on click)</button>
+        </Cascader>
+      </div>
+
+      <br/>
+
+      <div style={{alignSelf: `flex-end`}}>
+        <Cascader menu={menu}>
+          click me
+        </Cascader>
+      </div>
+
+      <div style={{alignSelf: `flex-end`, marginTop: `100px`}}>
+        <Cascader menu={menu}>
+          sm
+        </Cascader>
+      </div>
+    </div>;
+  }
+;
+;
