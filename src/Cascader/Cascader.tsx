@@ -14,6 +14,7 @@ interface IOMCascaderMenuItem {
   children?: IOMCascaderMenuItem[];
   childrenListClassName?: string;
   showDividerAfter?: boolean;
+  keepMenuOnClick?: boolean;
 }
 
 interface IOMCascaderMenu {
@@ -28,6 +29,7 @@ interface IOMCascaderMenu {
   menu: IOMCascaderMenuItem[];
   menuTrigger?: Trigger;
   menuExpandIcon?: ReactNode;
+  onMenuItemClick: () => void;
 }
 
 interface IOMCascader extends Pick<IOMCascaderMenu, `menu` | `menuTrigger` | `menuExpandIcon`> {
@@ -38,7 +40,16 @@ interface IOMCascader extends Pick<IOMCascaderMenu, `menu` | `menuTrigger` | `me
 
 const MIN_MARGIN = 30;
 
-const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpandIcon}: IOMCascaderMenu) => {
+const Menu = ({
+                container,
+                show,
+                className,
+                offset,
+                menu,
+                menuTrigger,
+                menuExpandIcon,
+                onMenuItemClick,
+              }: IOMCascaderMenu) => {
   const [opened, setOpened] = useState(``);
   const [expandR, setExpandR] = useState(false);
   const [firstLevelMenuToRight, setFirstLevelMenu] = useState(false);
@@ -72,6 +83,11 @@ const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpand
 
     if (i.children?.length > 0 && key !== opened) {
       setOpened(key);
+      return;
+    }
+
+    if (!i.keepMenuOnClick) {
+      onMenuItemClick();
     }
   };
 
@@ -93,10 +109,10 @@ const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpand
         <li
           key={key}
           className={cn(
-            i.className,
             `omc-menu-item`,
             hasChildren && `has-children`,
             i.showDividerAfter && `has-divider`,
+            i.className,
           )}
         >
           <span
@@ -108,7 +124,7 @@ const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpand
             {hasChildren && menuExpandIcon && <div className='expand-icon'>{menuExpandIcon}</div>}
           </span>
           {showChildren && hasChildren && (
-            <ul className={cn(i.childrenListClassName, `omc-menu`, expandR && `expand-r`)}>
+            <ul className={cn(`omc-menu`, expandR && `expand-r`, i.childrenListClassName)}>
               {renderItems(i.children, key)}
             </ul>
           )}
@@ -132,7 +148,7 @@ const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpand
 
   return ReactDOM.createPortal(
     <ul
-      className={cn(className, `omc-menu`)}
+      className={cn(`omc-menu`, className)}
       style={style}
     >
       {renderItems(menu, ``)}
@@ -142,14 +158,14 @@ const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpand
 };
 
 const Cascader: React.FC<IOMCascader> = ({
-                                     children,
-                                     container = document.querySelector(`body`),
-                                     className = ``,
-                                     menuClassName = ``,
-                                     menu,
-                                     menuTrigger = `hover`,
-                                     menuExpandIcon,
-                                   }) => {
+                                           children,
+                                           container = document.querySelector(`body`),
+                                           className = ``,
+                                           menuClassName = ``,
+                                           menu,
+                                           menuTrigger = `hover`,
+                                           menuExpandIcon,
+                                         }) => {
   const el = useRef(null);
   const menuRef = useRef(null);
   const observer = useRef(null);
@@ -212,10 +228,18 @@ const Cascader: React.FC<IOMCascader> = ({
     toggleMenu(false);
   };
 
+  const onMenuItemClick = () => {
+    toggleMenu(!showMenu);
+  };
+
   return <>
     <div
       ref={el}
-      className={cn(className, `omc-trigger`)}
+      className={cn(
+        `omc-trigger`,
+        showMenu && `open`,
+        className,
+      )}
       onClick={onToggle}
     >
       {children}
@@ -228,6 +252,7 @@ const Cascader: React.FC<IOMCascader> = ({
       menu={menu}
       menuTrigger={menuTrigger}
       menuExpandIcon={menuExpandIcon}
+      onMenuItemClick={onMenuItemClick}
     />
   </>;
 };
