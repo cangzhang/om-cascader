@@ -61,7 +61,7 @@ const Menu = ({
   }, [show]);
 
   useLayoutEffect(() => {
-    if (!show) {
+    if (!show || !container) {
       return;
     }
 
@@ -133,7 +133,7 @@ const Menu = ({
     });
   };
 
-  if (!show) {
+  if (!show || !container) {
     return null;
   }
 
@@ -186,11 +186,19 @@ const Cascader: React.FC<IOMCascader> = ({
   }, []);
 
   useEffect(() => {
+    if (observer.current || !showMenu) {
+      return;
+    }
+
     const div = document.createElement(`div`);
     menuRef.current = div;
     container.appendChild(div);
 
     observer.current = new ResizeObserver(() => {
+      if (!showMenu) {
+        return;
+      }
+
       const {left, bottom, right} = el.current.getBoundingClientRect();
       setOffset({
         left: Math.ceil(left),
@@ -199,12 +207,14 @@ const Cascader: React.FC<IOMCascader> = ({
       });
     });
     observer.current.observe(div);
+  }, [showMenu]);
 
+  useEffect(() => {
     return () => {
-      div.parentNode?.removeChild(div);
-      observer.current.unobserve(div);
-    };
-  }, []);
+      menuRef.current?.parentNode?.removeChild(menuRef.current);
+      observer.current?.unobserve(menuRef.current);
+    }
+  }, [])
 
   const onToggle = (ev) => {
     ev.stopPropagation();
