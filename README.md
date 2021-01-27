@@ -12,6 +12,7 @@ interface IMenuItem {
     children?: IMenuItem[];
     childrenListClassName?: string;
     showDividerAfter?: boolean;
+    keepMenuOnClick?: boolean;
 }
 ```
 
