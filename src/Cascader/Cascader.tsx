@@ -6,17 +6,17 @@ import cn from 'classnames';
 
 type Trigger = `hover` | `click`;
 
-interface MenuItemProps {
+interface IOMCascaderMenuItem {
   label: string;
   value: any;
   className?: string;
   onClick?: (ev: FormEvent, v: any) => any;
-  children?: MenuItemProps[];
+  children?: IOMCascaderMenuItem[];
   childrenListClassName?: string;
   showDividerAfter?: boolean;
 }
 
-interface MenuProps {
+interface IOMCascaderMenu {
   container: HTMLElement;
   show: boolean;
   className?: string;
@@ -25,12 +25,12 @@ interface MenuProps {
     top: number;
     right: number;
   };
-  menu: MenuItemProps[];
+  menu: IOMCascaderMenuItem[];
   menuTrigger?: Trigger;
   menuExpandIcon?: ReactNode;
 }
 
-interface Props extends Pick<MenuProps, `menu` | `menuTrigger` | `menuExpandIcon`> {
+interface IOMCascader extends Pick<IOMCascaderMenu, `menu` | `menuTrigger` | `menuExpandIcon`> {
   container?: HTMLElement;
   className?: string;
   menuClassName?: string;
@@ -38,7 +38,7 @@ interface Props extends Pick<MenuProps, `menu` | `menuTrigger` | `menuExpandIcon
 
 const MIN_MARGIN = 30;
 
-const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpandIcon}: MenuProps) => {
+const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpandIcon}: IOMCascaderMenu) => {
   const [opened, setOpened] = useState(``);
   const [expandR, setExpandR] = useState(false);
   const [firstLevelMenuToRight, setFirstLevelMenu] = useState(false);
@@ -141,7 +141,7 @@ const Menu = ({container, show, className, offset, menu, menuTrigger, menuExpand
   );
 };
 
-const Cascader: React.FC<Props> = ({
+const Cascader: React.FC<IOMCascader> = ({
                                      children,
                                      container = document.querySelector(`body`),
                                      className = ``,
