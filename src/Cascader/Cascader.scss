@@ -3,7 +3,7 @@ ul.omc-menu {
   list-style: none;
   box-shadow: 0 8px 18px 0 rgba(32, 45, 64, 0.08);
   background: rgb(255, 255, 255);
-  position: absolute;
+  position: fixed;
   width: max-content;
   margin: unset;
   padding: 4px 0;
@@ -62,6 +62,10 @@ ul.omc-menu {
           right: 100%;
           left: unset;
           transform: unset;
+        }
+
+        &.expand-top {
+          //top: -100%;
         }
       }
     }

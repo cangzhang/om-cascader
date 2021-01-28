@@ -23,8 +23,9 @@ interface IOMCascaderMenu {
   className?: string;
   offset: {
     left: number;
-    top: number;
     right: number;
+    top: number;
+    bottom: number;
   };
   menu: IOMCascaderMenuItem[];
   menuTrigger?: Trigger;
@@ -32,7 +33,9 @@ interface IOMCascaderMenu {
   onMenuItemClick: () => void;
 }
 
-interface IOMCascader extends Pick<IOMCascaderMenu, `menu` | `menuTrigger` | `menuExpandIcon`> {
+type PickedMenuProps = `menu` | `menuTrigger` | `menuExpandIcon`;
+
+interface IOMCascader extends Pick<IOMCascaderMenu, PickedMenuProps> {
   container?: HTMLElement;
   className?: string;
   menuClassName?: string;
@@ -52,7 +55,8 @@ const Menu = ({
               }: IOMCascaderMenu) => {
   const [opened, setOpened] = useState(``);
   const [expandR, setExpandR] = useState(false);
-  const [firstLevelMenuToRight, setFirstLevelMenu] = useState(false);
+  const [toRight, setToRight] = useState(false);
+  const [toTop, setToTop] = useState(false);
 
   useEffect(() => {
     if (!show) {
@@ -66,8 +70,16 @@ const Menu = ({
     }
 
     const allMenus: HTMLElement[] = Array.from(container.querySelectorAll(`ul.omc-menu`));
-    const placeFirstLevelToRight = allMenus[0].offsetWidth + offset.left + MIN_MARGIN >= window.innerWidth;
-    setFirstLevelMenu(placeFirstLevelToRight);
+    if (!allMenus.length) {
+      return;
+    }
+    const rootMenu = allMenus[0];
+    const placeToRight = rootMenu.offsetWidth + offset.left + MIN_MARGIN >= window.innerWidth;
+    setToRight(placeToRight);
+
+    const placeToTop = offset.top + rootMenu.offsetHeight + MIN_MARGIN >= window.innerHeight;
+    setToTop(placeToTop);
+
     const totalWidth = allMenus.reduce((cur, i) => cur + i.offsetWidth, 0);
     const shouldExpandToR = totalWidth + offset.left + MIN_MARGIN >= window.innerWidth;
     setExpandR(shouldExpandToR);
@@ -124,7 +136,14 @@ const Menu = ({
             {hasChildren && menuExpandIcon && <div className='expand-icon'>{menuExpandIcon}</div>}
           </span>
           {showChildren && hasChildren && (
-            <ul className={cn(`omc-menu`, expandR && `expand-r`, i.childrenListClassName)}>
+            <ul className={
+              cn(
+                `omc-menu`,
+                expandR && `expand-r`,
+                toTop && `expand-top`,
+                i.childrenListClassName,
+              )}
+            >
               {renderItems(i.children, key)}
             </ul>
           )}
@@ -138,9 +157,10 @@ const Menu = ({
   }
 
   const style: React.CSSProperties = {
-    top: offset?.top,
+    top: toTop ? `calc(100vh - ${offset.top}px)` : offset.bottom,
   };
-  if (firstLevelMenuToRight) {
+
+  if (toRight) {
     style.right = 0;
   } else {
     style.left = offset.left;
@@ -172,8 +192,9 @@ const Cascader: React.FC<IOMCascader> = ({
 
   const [showMenu, toggleMenu] = useState(false);
   const [offset, setOffset] = useState({
-    left: 0,
     top: 0,
+    bottom: 0,
+    left: 0,
     right: 0,
   });
 
@@ -190,20 +211,28 @@ const Cascader: React.FC<IOMCascader> = ({
       return;
     }
 
+    const fixedDiv = document.createElement(`div`);
+    fixedDiv.setAttribute(`tabindex`, `-1`);
+    fixedDiv.setAttribute(
+      `style`,
+      `width: 1px; height: 0px; padding: 0px;overflow: hidden;position: fixed;top: 1px;left: 1px;`,
+    );
     const div = document.createElement(`div`);
     menuRef.current = div;
     container.appendChild(div);
+    div.appendChild(fixedDiv);
 
     observer.current = new ResizeObserver(() => {
       if (!showMenu) {
         return;
       }
 
-      const {left, bottom, right} = el.current.getBoundingClientRect();
+      const {left, bottom, right, top} = el.current.getBoundingClientRect();
       setOffset({
         left: Math.ceil(left),
-        top: Math.ceil(bottom),
         right: Math.ceil(right),
+        bottom: Math.ceil(bottom),
+        top: Math.ceil(top),
       });
     });
     observer.current.observe(div);
@@ -213,18 +242,19 @@ const Cascader: React.FC<IOMCascader> = ({
     return () => {
       menuRef.current?.parentNode?.removeChild(menuRef.current);
       observer.current?.unobserve(menuRef.current);
-    }
-  }, [])
+    };
+  }, []);
 
   const onToggle = (ev) => {
     ev.stopPropagation();
     const next = !showMenu;
     if (el.current && next) {
-      const {left, bottom, right} = el.current.getBoundingClientRect();
+      const {left, bottom, right, top} = el.current.getBoundingClientRect();
       setOffset({
         left: Math.ceil(left),
-        top: Math.ceil(bottom),
         right: Math.ceil(right),
+        bottom: Math.ceil(bottom),
+        top: Math.ceil(top),
       });
     }
     toggleMenu(next);

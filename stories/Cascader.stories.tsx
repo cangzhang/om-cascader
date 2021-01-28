@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Cascader from './Cascader';
+import Cascader from '../src/Cascader/Cascader';
 
 export default {
   title: 'Cascader',
