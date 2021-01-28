@@ -31,12 +31,12 @@ interface IOMCascaderMenu {
   menuTrigger?: Trigger;
   menuExpandIcon?: ReactNode;
   onMenuItemClick: () => void;
+  observeNode?: HTMLElement | undefined | null;
 }
 
-type PickedMenuProps = `menu` | `menuTrigger` | `menuExpandIcon`;
+type PickedMenuProps = `menu` | `menuTrigger` | `menuExpandIcon` | `observeNode`;
 
 interface IOMCascader extends Pick<IOMCascaderMenu, PickedMenuProps> {
-  container?: HTMLElement;
   className?: string;
   menuClassName?: string;
 }
@@ -52,11 +52,13 @@ const Menu = ({
                 menuTrigger,
                 menuExpandIcon,
                 onMenuItemClick,
+                observeNode,
               }: IOMCascaderMenu) => {
   const [opened, setOpened] = useState(``);
   const [expandR, setExpandR] = useState(false);
   const [toRight, setToRight] = useState(false);
   const [toTop, setToTop] = useState(false);
+  const [ulOffset, setUlOffset] = useState({});
 
   useEffect(() => {
     if (!show) {
@@ -69,20 +71,40 @@ const Menu = ({
       return;
     }
 
-    const allMenus: HTMLElement[] = Array.from(container.querySelectorAll(`ul.omc-menu`));
+    const allMenus: HTMLElement[] = Array.from(container.querySelectorAll(`ul.omc-menu[data-parent]`));
     if (!allMenus.length) {
       return;
     }
+
     const rootMenu = allMenus[0];
-    const placeToRight = rootMenu.offsetWidth + offset.left + MIN_MARGIN >= window.innerWidth;
+    const placeToRight = rootMenu.offsetWidth + offset.left + MIN_MARGIN > window.innerWidth;
     setToRight(placeToRight);
 
-    const placeToTop = offset.top + rootMenu.offsetHeight + MIN_MARGIN >= window.innerHeight;
+    const placeToTop = offset.top + rootMenu.offsetHeight + MIN_MARGIN > window.innerHeight;
     setToTop(placeToTop);
 
     const totalWidth = allMenus.reduce((cur, i) => cur + i.offsetWidth, 0);
-    const shouldExpandToR = totalWidth + offset.left + MIN_MARGIN >= window.innerWidth;
+    const shouldExpandToR = totalWidth + offset.left + MIN_MARGIN > window.innerWidth;
     setExpandR(shouldExpandToR);
+
+    if (allMenus.length < 2) {
+      return;
+    }
+
+    const lastIdx = allMenus.length - 1;
+    const lastMenu = allMenus[lastIdx];
+    const parentMenu = allMenus[lastIdx - 1];
+
+    const rect = lastMenu.getBoundingClientRect();
+    if (rect.bottom + MIN_MARGIN > window.innerHeight) {
+      const openedLi = parentMenu.querySelector(`li.has-children.show-children`);
+      const liRect = openedLi.getBoundingClientRect();
+      const offsetTop = rect.bottom - liRect.bottom;
+      setUlOffset(p => ({
+        ...p,
+        [lastMenu.dataset.parent]: offsetTop,
+      }));
+    }
   }, [show, opened]);
 
   const onClickItem = (key, i) => (ev) => {
@@ -116,6 +138,11 @@ const Menu = ({
       const hasChildren = i.children?.length > 0;
       const key = parentKey ? `${parentKey}-${idx}` : `${idx}`;
       const showChildren = opened.startsWith(key);
+      const shouldResetOffset = !!ulOffset[key];
+      const style: React.CSSProperties = {};
+      if (shouldResetOffset) {
+        style.top = `-${ulOffset[key]}px`;
+      }
 
       return (
         <li
@@ -123,6 +150,7 @@ const Menu = ({
           className={cn(
             `omc-menu-item`,
             hasChildren && `has-children`,
+            showChildren && `show-children`,
             i.showDividerAfter && `has-divider`,
             i.className,
           )}
@@ -136,13 +164,16 @@ const Menu = ({
             {hasChildren && menuExpandIcon && <div className='expand-icon'>{menuExpandIcon}</div>}
           </span>
           {showChildren && hasChildren && (
-            <ul className={
-              cn(
-                `omc-menu`,
-                expandR && `expand-r`,
-                toTop && `expand-top`,
-                i.childrenListClassName,
-              )}
+            <ul
+              data-parent={key}
+              className={
+                cn(
+                  `omc-menu`,
+                  expandR && `expand-r`,
+                  toTop && `expand-top`,
+                  i.childrenListClassName,
+                )}
+              style={style}
             >
               {renderItems(i.children, key)}
             </ul>
@@ -156,18 +187,23 @@ const Menu = ({
     return null;
   }
 
-  const style: React.CSSProperties = {
-    top: toTop ? `calc(100vh - ${offset.top}px)` : offset.bottom,
-  };
+  const style: React.CSSProperties = toTop
+    ? {
+      bottom: `calc(100vh - ${offset.top}px)`,
+    }
+    : {
+      top: offset.bottom,
+    };
 
+  style.left = offset.left;
   if (toRight) {
-    style.right = 0;
-  } else {
-    style.left = offset.left;
+    style.left = offset.right;
+    style.transform = `translateX(-100%)`;
   }
 
   return ReactDOM.createPortal(
     <ul
+      data-parent={`root`}
       className={cn(`omc-menu`, className)}
       style={style}
     >
@@ -179,12 +215,12 @@ const Menu = ({
 
 const Cascader: React.FC<IOMCascader> = ({
                                            children,
-                                           container = document.querySelector(`body`),
                                            className = ``,
                                            menuClassName = ``,
                                            menu,
                                            menuTrigger = `hover`,
                                            menuExpandIcon,
+                                           observeNode,
                                          }) => {
   const el = useRef(null);
   const menuRef = useRef(null);
@@ -200,17 +236,15 @@ const Cascader: React.FC<IOMCascader> = ({
 
   useEffect(() => {
     document.addEventListener(`mousedown`, onClickOutside);
+    document.addEventListener(`scroll`, onOffsetChange);
 
     return () => {
       document.removeEventListener(`mousedown`, onClickOutside);
+      document.removeEventListener(`scroll`, onOffsetChange);
     };
   }, []);
 
   useEffect(() => {
-    if (observer.current || !showMenu) {
-      return;
-    }
-
     const fixedDiv = document.createElement(`div`);
     fixedDiv.setAttribute(`tabindex`, `-1`);
     fixedDiv.setAttribute(
@@ -219,24 +253,9 @@ const Cascader: React.FC<IOMCascader> = ({
     );
     const div = document.createElement(`div`);
     menuRef.current = div;
-    container.appendChild(div);
+    document.body.appendChild(div);
     div.appendChild(fixedDiv);
-
-    observer.current = new ResizeObserver(() => {
-      if (!showMenu) {
-        return;
-      }
-
-      const {left, bottom, right, top} = el.current.getBoundingClientRect();
-      setOffset({
-        left: Math.ceil(left),
-        right: Math.ceil(right),
-        bottom: Math.ceil(bottom),
-        top: Math.ceil(top),
-      });
-    });
-    observer.current.observe(div);
-  }, [showMenu]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -245,17 +264,44 @@ const Cascader: React.FC<IOMCascader> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (!showMenu) {
+      return;
+    }
+
+    if (!observeNode) {
+      return;
+    }
+
+    observer.current = new ResizeObserver(() => {
+      if (!showMenu) {
+        return;
+      }
+
+      onOffsetChange();
+    });
+    observer.current.observe(menuRef.current);
+  }, [showMenu]);
+
+  const onOffsetChange = () => {
+    if (!el.current) {
+      return;
+    }
+
+    const {left, bottom, right, top} = el.current.getBoundingClientRect();
+    setOffset({
+      left: Math.ceil(left),
+      right: Math.ceil(right),
+      bottom: Math.ceil(bottom),
+      top: Math.ceil(top),
+    });
+  };
+
   const onToggle = (ev) => {
     ev.stopPropagation();
     const next = !showMenu;
     if (el.current && next) {
-      const {left, bottom, right, top} = el.current.getBoundingClientRect();
-      setOffset({
-        left: Math.ceil(left),
-        right: Math.ceil(right),
-        bottom: Math.ceil(bottom),
-        top: Math.ceil(top),
-      });
+      onOffsetChange();
     }
     toggleMenu(next);
   };
@@ -293,6 +339,7 @@ const Cascader: React.FC<IOMCascader> = ({
       menuTrigger={menuTrigger}
       menuExpandIcon={menuExpandIcon}
       onMenuItemClick={onMenuItemClick}
+      observeNode={observeNode}
     />
   </>;
 };

@@ -52,6 +52,55 @@ const menu = [
     label: `Turbo Transformers 3`,
     value: `item1`,
     onClick: (_, i) => console.log(i),
+    children: [
+      {
+        label: `Turbo Transformers`,
+        value: `item1`,
+        onClick: (_, i) => console.log(i),
+      },
+      {
+        label: `Item 2`,
+        value: `item2`,
+        onClick: (_, i) => console.log(i),
+        children: [
+          {
+            label: `Turbo Transformers: Child Item 1 Turbo Transformers: Child Item 1`,
+            value: `child item1`,
+            onClick: (_, i) => console.log(i),
+            children: [
+              {
+                label: `Grandchild Item 1`,
+                value: `grandchild item1`,
+                onClick: (_, i) => console.log(i),
+              },
+            ],
+          },
+          {
+            label: `Child Item 2`,
+            value: `child item2`,
+            onClick: (_, i) => console.log(i),
+            children: [
+              {
+                label: `Grandchild Item 2`,
+                value: `grandchild item2`,
+                onClick: (_, i) => console.log(i),
+              },
+            ],
+          },
+        ],
+      },
+      {
+        label: `Turbo Transformers 2`,
+        value: `item1`,
+        onClick: (_, i) => console.log(i),
+        showDividerAfter: true,
+      },
+      {
+        label: `Turbo Transformers 3`,
+        value: `item1`,
+        onClick: (_, i) => console.log(i),
+      },
+    ],
   },
 ];
 
@@ -68,9 +117,11 @@ export const Primary = () => {
         alignItems: `center`,
       }}
     >
-      <Cascader menu={menu}>
-        click me(expand menu on hover)
-      </Cascader>
+      <div style={{margin: `0 auto 0 100px`}}>
+        <Cascader menu={menu} observeNode={document.body}>
+          click me(expand menu on hover)
+        </Cascader>
+      </div>
 
       <br/>
 
@@ -79,7 +130,7 @@ export const Primary = () => {
           margin: `100px 0`,
         }}
       >
-        <Cascader menu={menu} menuTrigger={`click`}>
+        <Cascader menu={menu} menuTrigger={`click`} observeNode={document.body}>
           <button onClick={log}>click me(expand menu on click)</button>
         </Cascader>
       </div>
@@ -87,14 +138,14 @@ export const Primary = () => {
       <br/>
 
       <div style={{alignSelf: `flex-end`}}>
-        <Cascader menu={menu}>
+        <Cascader menu={menu} observeNode={document.body}>
           click me
         </Cascader>
       </div>
 
       <div style={{alignSelf: `flex-end`, margin: `100px 200px`}}>
-        <Cascader menu={menu} menuExpandIcon={`>`}>
-          sm
+        <Cascader menu={menu} menuExpandIcon={`>`} observeNode={document.body}>
+          <p style={{height: `50px`, width: `50px`, border: `1px solid`}}>big</p>
         </Cascader>
       </div>
     </div>;

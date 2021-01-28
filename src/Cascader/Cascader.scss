@@ -1,3 +1,5 @@
+$bg: rgb(245, 247, 250);
+
 ul.omc-menu {
   font-family: emoji, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;;
   list-style: none;
@@ -20,7 +22,11 @@ ul.omc-menu {
     min-width: 100%;
 
     &:hover > span {
-      background: rgb(245, 247, 250);
+      background: $bg;
+    }
+
+    &.show-children > span {
+      background: $bg;
     }
 
     > span {
@@ -42,7 +48,7 @@ ul.omc-menu {
 
     &.has-divider {
       padding-bottom: 4px;
-      border-bottom: 1px solid rgb(245, 247, 250);
+      border-bottom: 1px solid $bg;
 
       & + li.omc-menu-item {
         margin-top: 4px;
