@@ -63,6 +63,7 @@ const Menu = ({
   useEffect(() => {
     if (!show) {
       setOpened(``);
+      setUlOffset({});
     }
   }, [show]);
 
