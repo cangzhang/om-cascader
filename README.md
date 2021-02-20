@@ -15,6 +15,7 @@ interface IOMCascaderMenuItem {
   className?: string;
   onClick?: (ev: FormEvent, v: any) => any;
   children?: IOMCascaderMenuItem[];
+  isChildrenWrapper?: boolean;
   childrenListClassName?: string;
   showDividerAfter?: boolean;
   keepMenuOnClick?: boolean;

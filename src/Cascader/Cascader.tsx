@@ -12,6 +12,7 @@ interface IOMCascaderMenuItem {
   className?: string;
   onClick?: (ev: FormEvent, v: any) => any;
   children?: IOMCascaderMenuItem[];
+  isChildrenWrapper?: boolean;
   childrenListClassName?: string;
   showDividerAfter?: boolean;
   keepMenuOnClick?: boolean;
@@ -52,7 +53,6 @@ const Menu = ({
                 menuTrigger,
                 menuExpandIcon,
                 onMenuItemClick,
-                observeNode,
               }: IOMCascaderMenu) => {
   const [opened, setOpened] = useState(``);
   const [expandR, setExpandR] = useState(false);
@@ -140,9 +140,14 @@ const Menu = ({
       const key = parentKey ? `${parentKey}-${idx}` : `${idx}`;
       const showChildren = opened.startsWith(key);
       const shouldResetOffset = !!ulOffset[key];
+
       const style: React.CSSProperties = {};
       if (shouldResetOffset) {
         style.top = `-${ulOffset[key]}px`;
+      }
+
+      if (i.isChildrenWrapper && i.children.length) {
+        return <div className={cn(i.childrenListClassName)}>{renderItems(i.children, key)}</div>;
       }
 
       return (
